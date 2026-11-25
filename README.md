@@ -103,3 +103,16 @@ If you find this repo or our paper helpful, please cite it as follows:
 # Disclaimer
 
 This is not an officially supported Google product.
+
+### Multi-provider writing and review (JJo-0 fork)
+
+Use a provider-qualified model ID for each role. OpenAI requires OPENAI_API_KEY and Anthropic requires ANTHROPIC_API_KEY. Set the model variables below to IDs available in your API accounts. The writer also performs literature discovery using its provider's web search tool. The language of the manuscript can be specified in the supplied materials and template guidelines.
+
+```sh
+python paper_writing_cli.py --raw_materials_dir ./materials \
+  --latex_template_dir templates/iclr2025 --output_dir ./draft \
+  --writer_model_name "openai/${OPENAI_MODEL}" \
+  --reflection_model_name "anthropic/${CLAUDE_MODEL}" --use_plotting false
+```
+
+Either provider can fill either role. Bare Gemini model IDs use the upstream Gemini client. Supply existing figures for the example above. The optional image-generation stage uses its own Gemini image model. Hosted search requires a compatible model and provider permissions. Both writing and review send manuscript materials to the selected APIs.

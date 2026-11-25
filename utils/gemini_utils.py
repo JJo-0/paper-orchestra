@@ -24,6 +24,8 @@ import mimetypes
 import base64
 import threading
 
+from utils import provider_text
+
 import dotenv
 
 dot_file = os.path.join(os.path.dirname(__file__), "../.env")
@@ -171,19 +173,18 @@ def call_gemini_with_contents(
     raw_response = None
     parsed_response = None
 
-    genai_client = get_genai_client()
     for attempt in range(max_retries):
         try:
-            response = genai_client.models.generate_content(
-                model=model_name,
-                contents=contents,
-                config=types.GenerateContentConfig(**generation_configs),
-            )
-
-            if not response or not hasattr(response, "text") or response.text is None:
-                raise ValueError("Incomplete response from Gemini API or empty text")
-
-            raw_response = response.text
+            if provider_text.external_model(model_name):
+                raw_response = provider_text.generate(model_name, contents, generation_configs)
+            else:
+                response = get_genai_client().models.generate_content(
+                    model=model_name, contents=contents,
+                    config=types.GenerateContentConfig(**generation_configs),
+                )
+                raw_response = response.text if response else None
+            if not raw_response:
+                raise ValueError("Empty model response")
             parsed_response = result_parsing_func(raw_response)
 
             if check_parsed_response_not_none:

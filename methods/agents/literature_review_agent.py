@@ -25,6 +25,7 @@ from google.genai import types  # type: ignore
 from methods.prompts.literature_review_agent import (
     literature_review_agent_writter_prompt,
 )
+from utils.provider_text import external_model
 from utils.gemini_utils import call_gemini_with_contents, parse_gemini_latex_results
 from utils.scholar_utils import s2_title_search
 
@@ -462,7 +463,7 @@ class HybridLiteratureAgent:
             """
 
         response_dict = call_gemini_with_contents(
-            model_name="gemini-3-flash-preview",
+            model_name=self.model_name if external_model(self.model_name) else "gemini-3-flash-preview",
             contents=[prompt],
             generation_configs={
                 "tools": [self.google_search_tool],

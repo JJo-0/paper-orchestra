@@ -30,6 +30,7 @@ from utils.openai_utils import (
     get_openai_image_part_from_path,
 )
 from utils.pdf_utils import load_paper
+from utils.provider_text import external_model
 
 
 def identity_parse(response: str):
@@ -40,7 +41,7 @@ def get_llm_parser(model_name: str, return_json: bool = True) -> Callable:
     if not return_json:
         return identity_parse
 
-    if (
+    if not external_model(model_name) and (
         "gpt" in model_name.lower()
         or "o1" in model_name.lower()
         or "o3" in model_name.lower()
@@ -70,7 +71,7 @@ def call_llm_with_text_prompt(
     if generation_configs is None:
         generation_configs = {}
 
-    if (
+    if not external_model(model_name) and (
         "gpt" in model_name.lower()
         or "o1" in model_name.lower()
         or "o3" in model_name.lower()
@@ -123,7 +124,7 @@ def call_llm_with_images(
     if generation_configs is None:
         generation_configs = {}
 
-    if (
+    if not external_model(model_name) and (
         "gpt" in model_name.lower()
         or "o1" in model_name.lower()
         or "o3" in model_name.lower()
@@ -181,7 +182,7 @@ def call_llm_with_pdf(
         else get_llm_parser(model_name, return_json)
     )
 
-    if (
+    if not external_model(model_name) and (
         "gpt" in model_name.lower()
         or "o1" in model_name.lower()
         or "o3" in model_name.lower()
