@@ -8,7 +8,7 @@ import tempfile
 def generate(provider, model, contents, config):
     with tempfile.TemporaryDirectory(prefix="paper-orchestra-") as workspace:
         root = Path(workspace)
-        parts = [config.get("system_instruction") or "", "Return only the requested manuscript content."]
+        parts = [config["system_instruction"]] if config.get("system_instruction") else []
         images = []
         for index, part in enumerate(contents):
             text = part if isinstance(part, str) else part.text

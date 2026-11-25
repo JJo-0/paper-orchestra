@@ -458,7 +458,7 @@ class HybridLiteratureAgent:
             CUTOFF DATE: Published BEFORE {cutoff_date}
             
             INSTRUCTIONS:
-            1. Use Google Search to find the EXACT title and year of this paper.
+            1. Use web search to find the EXACT title and year of this paper.
             2. If the hint refers to a dataset, model architecture, or baseline (e.g., "research paper introducing..."), you MUST find the primary, original paper that introduced it.
             3. Return EXACTLY 1 candidate paper that matches best.
 
@@ -475,7 +475,7 @@ class HybridLiteratureAgent:
             CUTOFF DATE: Published BEFORE {cutoff_date}
             
             INSTRUCTIONS:
-            1. Use Google Search to find REAL papers (ArXiv, CVPR, NeurIPS, ICML, ICLR, etc.).
+            1. Use web search to find REAL papers (ArXiv, CVPR, NeurIPS, ICML, ICLR, etc.).
             2. Only return papers published in top-tier conferences or journals, or highly-cited works, or the exact state-of-the-art relevant to the task.
 
             YOU MUST return the results in json format (```json content```) following this schema:

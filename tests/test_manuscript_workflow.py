@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from autoraters.agent_review import perform_review_agentreview
 from paper_writing_cli import main
 from methods.agents.content_refinement_agent import ContentRefinementAgent
 from methods.agents.literature_review_agent import HybridLiteratureAgent
@@ -81,6 +82,15 @@ class ManuscriptWorkflow(unittest.TestCase):
                    return_value={"parsed_response": {"candidates": []}}) as search:
             agent._discover_candidates({"focus": "example", "context": "related work"}, {}, "2026-11")
         self.assertEqual(search.call_args.kwargs["model_name"], MODELS[2])
+
+    def test_every_peer_review_and_meta_review_use_selected_model(self):
+        for model in MODELS:
+            with self.subTest(model=model), patch(
+                "autoraters.agent_review.call_gemini_with_text_prompt",
+                return_value={"parsed_response": {"Overall": 7}}
+            ) as request:
+                self.assertEqual(perform_review_agentreview("draft", model)["Overall"], 7)
+                self.assertEqual([call.kwargs["model_name"] for call in request.call_args_list], [model] * 4)
 
     def test_no_successful_baseline_review_on_provider_failure(self):
         agent = ContentRefinementAgent("", "", "", model_name=MODELS[1], work_dir=self.root)

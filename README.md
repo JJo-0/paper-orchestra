@@ -132,7 +132,7 @@ python paper_writing_cli.py --model "$model" \
   --research_cutoff 2026-11 --use_plotting false --output_dir "./drafts/${model//\//_}"
 ```
 
-Use the same input directory, language guidelines, template, cutoff and supplied figures for each run. For a fixed bibliography, put `screened_literature.json` beside the idea file in the raw materials directory. It contains an array of records with `key`, `title`, `authors` (list), `venue`, `year` and `summary`. A screened pool replaces live search for every model. Each model still writes the literature synthesis and receives the same references when drafting and revising. With live search, web results can differ by provider.
+Use the same input directory, language guidelines, template, cutoff and supplied figures for each run. For a fixed bibliography, put `screened_literature.json` beside the idea file in the raw materials directory. It contains an array of records with `key`, `title`, `authors` (list), `venue`, `year` and `summary`. A screened pool replaces live search for every model. Each model still writes the literature synthesis and receives the same references when drafting and revising. With live search, web results can differ by provider. The manuscript prompts and stopping rules are shared. Sampling controls, token budgets and service quotas depend on the backend.
 
 The same flag accepts `openai/<API model>`, `anthropic/<API model>`, or `agy/<installed model>`. For deliberate mixed-model runs use the per-role flags on their own. The writer supplies the default reviewer and plot-code model. With figure generation enabled, diagram rendering uses the separately configured Gemini image model.
 
