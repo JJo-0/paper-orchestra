@@ -116,3 +116,7 @@ python paper_writing_cli.py --raw_materials_dir ./materials \
 ```
 
 Either provider can fill either role. Bare Gemini model IDs use the upstream Gemini client. Supply existing figures for the example above. The optional image-generation stage uses its own Gemini image model. Hosted search requires a compatible model and provider permissions. Both writing and review send manuscript materials to the selected APIs.
+
+### Locally authenticated CLI sessions
+
+Use `codex/default` for a Codex CLI signed in with ChatGPT, `claude/sonnet` for Claude Code, or `agy/<installed-model-id>` for Antigravity. These names work in the same writer and reflection flags as the API providers. Run `codex login status`, `claude auth status`, or `agy models` to inspect the corresponding local session. Each turn starts in a temporary directory with only its prompt and requested attachments. The CLI's account, permissions, quotas, and local configuration apply. Enable plotting only if the separately configured image provider is available. Store any API credentials locally in the ignored `.env` file.

@@ -6,11 +6,14 @@ import requests
 
 
 def external_model(name):
-    return name.startswith(("openai/", "anthropic/"))
+    return name.startswith(("openai/", "anthropic/", "codex/", "claude/", "agy/"))
 
 
 def generate(name, contents, config):
     provider, model = name.split("/", 1)
+    if provider in {"codex", "claude", "agy"}:
+        from utils.subscription_cli import generate as cli_generate
+        return cli_generate(provider, model, contents, config)
     blocks = []
     for part in contents:
         text = part if isinstance(part, str) else part.text
