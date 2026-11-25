@@ -25,7 +25,6 @@ from google.genai import types  # type: ignore
 from methods.prompts.literature_review_agent import (
     literature_review_agent_writter_prompt,
 )
-from utils.provider_text import external_model
 from utils.gemini_utils import call_gemini_with_contents, parse_gemini_latex_results
 from utils.scholar_utils import s2_title_search
 
@@ -111,20 +110,17 @@ class HybridLiteratureAgent:
             outline = json.load(f)
 
         outline_output_path = f"{self.output_dir}/outline_v1.json"
-        unique_papers_registry: Dict[str, PaperData] = {}
-        processed_tasks = set()
-
-        # --- PHASE 1: DISCOVERY & RETRIEVAL ---
-        self._safe_print(f"📚 Phase 1: Analyzing Plan & Executing Search Tasks...")
-
-        search_tasks = self._collect_search_tasks(outline)
-        self._safe_print(
-            f"    -> Identified {len(search_tasks)} distinct search tasks."
-        )
-
-        self._execute_tasks_in_parallel(
-            search_tasks, outline, unique_papers_registry, processed_tasks, cutoff_date
-        )
+        screened_path = os.path.join(os.path.dirname(self.context_paths["idea.md"]), "screened_literature.json")
+        if os.path.isfile(screened_path):
+            unique_papers_registry = self._read_screened_literature(screened_path, cutoff_date)
+            self._safe_print(f"Loaded {len(unique_papers_registry)} screened papers from {screened_path}")
+        else:
+            unique_papers_registry = {}
+            search_tasks = self._collect_search_tasks(outline)
+            self._safe_print(f"Executing {len(search_tasks)} literature search tasks.")
+            self._execute_tasks_in_parallel(
+                search_tasks, outline, unique_papers_registry, set(), cutoff_date
+            )
 
         self._safe_print(
             f"\n✨ Final Count: {len(unique_papers_registry)} unique enriched papers retrieved."
@@ -157,6 +153,30 @@ class HybridLiteratureAgent:
         self._safe_print(
             f"✅ Done! Literature Review Outputs saved to {self.output_dir}/"
         )
+
+    def _read_screened_literature(self, path, cutoff_date):
+        with open(path, encoding="utf-8") as source:
+            entries = json.load(source)
+        if not isinstance(entries, list) or not entries:
+            raise ValueError("Expected a nonempty list of screened publications")
+        papers = {}
+        keys = set()
+        for entry in entries:
+            paper = PaperData(
+                citation_key=entry["key"], title=entry["title"], authors=entry["authors"],
+                venue=entry["venue"], year=entry["year"], abstract=entry["summary"],
+                journal=entry.get("journal"), publication_date=entry.get("publicationDate"),
+                citation_count=0, found_in_section="Related Work", reason="Screened prior work",
+            )
+            title = self._normalize_title(paper.title)
+            if (not title or not paper.abstract.strip() or not paper.citation_key.strip()
+                    or title in papers or paper.citation_key in keys):
+                raise ValueError(f"Empty or duplicate screened publication: {paper.title}")
+            if not self._is_paper_allowed(entry, cutoff_date):
+                raise ValueError(f"Screened publication after cutoff: {paper.title}")
+            papers[title] = paper
+            keys.add(paper.citation_key)
+        return papers
 
     def _execute_tasks_in_parallel(
         self, tasks, outline, registry, processed_tasks_set, cutoff_date
@@ -463,7 +483,7 @@ class HybridLiteratureAgent:
             """
 
         response_dict = call_gemini_with_contents(
-            model_name=self.model_name if external_model(self.model_name) else "gemini-3-flash-preview",
+            model_name=self.model_name,
             contents=[prompt],
             generation_configs={
                 "tools": [self.google_search_tool],

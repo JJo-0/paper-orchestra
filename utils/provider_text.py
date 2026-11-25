@@ -4,6 +4,8 @@ import os
 
 import requests
 
+DEFAULT_MODEL = "gemini-3.8-flash"
+
 
 def external_model(name):
     return name.startswith(("openai/", "anthropic/", "codex/", "claude/", "agy/"))

@@ -200,7 +200,7 @@ def call_gemini_with_contents(
         except Exception as e:
             error_msg = str(e)
             print(
-                f"Warning: Gemini API call failed on attempt {attempt + 1} of {max_retries}. Error: {error_msg}",
+                f"Warning: {model_name} call failed on attempt {attempt + 1} of {max_retries}. Error: {error_msg}",
             )
 
             if (

@@ -28,6 +28,7 @@ from methods.agents.section_writing_agent import SectionWritingAgent
 from methods.agents.content_refinement_agent import ContentRefinementAgent
 from methods.agents.plotting_agent import PlottingAgent
 
+from utils.provider_text import DEFAULT_MODEL
 from utils.common_utils import (
     create_log_folder,
 )
@@ -38,9 +39,9 @@ def write_single_paper(
     latex_template_dir,
     idea_filename="idea_dense.md",
     experimental_log_filename="experimental_log.md",
-    writer_model_name: str = "gemini-3.1-pro-preview",
-    reflection_model_name: str = "gemini-3.1-pro-preview",
-    plotting_model_name: str = "gemini-3.1-pro-preview",
+    writer_model_name: str = DEFAULT_MODEL,
+    reflection_model_name: str | None = None,
+    plotting_model_name: str | None = None,
     image_model_name: str = "gemini-3-pro-image-preview",
     research_cutoff: str = "2024-11",
     plotting_max_critic_rounds: int = 3,
@@ -136,7 +137,7 @@ def write_single_paper(
                 print("[DEBUG] Starting run_plotting_agent")
                 plotting_results_path = osp.join(base_dir, "plotting_results.json")
                 plotting_agent = PlottingAgent(
-                    model_name=plotting_model_name,
+                    model_name=plotting_model_name or writer_model_name,
                     image_model_name=image_model_name,
                     max_critic_rounds=plotting_max_critic_rounds,
                 )
@@ -227,7 +228,7 @@ def write_single_paper(
                 experimental_log_path=experimental_log_file_path,
                 citation_map_path=citation_map_path,
                 guidelines_path=guidelines_path,
-                model_name=reflection_model_name,
+                model_name=reflection_model_name or writer_model_name,
                 max_reflections=3,
                 work_dir=content_refinement_workdir,
             )
@@ -437,8 +438,8 @@ def run_batch_writeup(
     date_str: str = "",
     idea_filename: str = "idea_sparse.md",
     experimental_log_filename: str = "experimental_log.md",
-    writer_model_name: str = "gemini-3.1-pro-preview",
-    plotting_model_name: str = "gemini-3.1-pro-preview",
+    writer_model_name: str = DEFAULT_MODEL,
+    plotting_model_name: str | None = None,
     image_model_name: str = "gemini-3-pro-image-preview",
     plotting_max_critic_rounds: int = 3,
     research_cutoff: str = "2024-11",

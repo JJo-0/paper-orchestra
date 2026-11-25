@@ -18,6 +18,8 @@ import os
 import shutil
 from datetime import datetime
 
+from utils.provider_text import DEFAULT_MODEL
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -50,13 +52,15 @@ def main():
         help="Filename of the experimental log within raw_materials. Default: experimental_log.md",
     )
     parser.add_argument(
+        "--model",
+        help="Model for all manuscript stages, including literature, writing, review and plot code.",
+    )
+    parser.add_argument(
         "--writer_model_name",
-        default="gemini-3.1-pro-preview",
         help="LLM for writer and literature agents.",
     )
     parser.add_argument(
         "--reflection_model_name",
-        default="gemini-3.1-pro-preview",
         help="LLM for reflection agents.",
     )
     parser.add_argument(
@@ -72,7 +76,6 @@ def main():
     )
     parser.add_argument(
         "--plotting_model_name",
-        default="gemini-3.1-pro-preview",
         help="LLM for the plotting agent.",
     )
     parser.add_argument(
@@ -88,6 +91,17 @@ def main():
     )
 
     args = parser.parse_args()
+
+    if args.model and any((args.writer_model_name, args.reflection_model_name, args.plotting_model_name)):
+        parser.error("Use --model for a single-model run or use the per-role flags for a mixed run.")
+
+    args.writer_model_name = args.model or args.writer_model_name or DEFAULT_MODEL
+    args.reflection_model_name = args.reflection_model_name or args.writer_model_name
+    args.plotting_model_name = args.plotting_model_name or args.writer_model_name
+
+    print(f"Manuscript models: writer={args.writer_model_name}, reviewer={args.reflection_model_name}")
+    if args.use_plotting:
+        print(f"Figure models: plot={args.plotting_model_name}, diagram={args.image_model_name}")
 
     if args.research_cutoff is None:
         args.research_cutoff = datetime.now().strftime("%Y-%m")
@@ -142,7 +156,7 @@ def main():
         from methods.paper_writer_with_plotting import write_single_paper
 
         print(f"🚀 Starting Paper Generation (WITH PLOTTING) in {base_dir}")
-        write_single_paper(
+        success = write_single_paper(
             base_dir=base_dir,
             latex_template_dir=args.latex_template_dir,
             idea_filename=args.idea_filename,
@@ -161,7 +175,7 @@ def main():
         print(
             f"🚀 Starting Paper Generation (WITHOUT PLOTTING), with figures stored in {provided_figures_dir}"
         )
-        write_single_paper(
+        success = write_single_paper(
             base_dir=base_dir,
             latex_template_dir=args.latex_template_dir,
             idea_filename=args.idea_filename,
@@ -170,6 +184,9 @@ def main():
             reflection_model_name=args.reflection_model_name,
             research_cutoff=args.research_cutoff,
         )
+
+    if not success:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

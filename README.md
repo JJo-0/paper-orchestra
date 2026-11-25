@@ -120,3 +120,20 @@ Either provider can fill either role. Bare Gemini model IDs use the upstream Gem
 ### Locally authenticated CLI sessions
 
 Use `codex/default` for a Codex CLI signed in with ChatGPT, `claude/sonnet` for Claude Code, or `agy/<installed-model-id>` for Antigravity. These names work in the same writer and reflection flags as the API providers. Run `codex login status`, `claude auth status`, or `agy models` to inspect the corresponding local session. Each turn starts in a temporary directory with only its prompt and requested attachments. The CLI's account, permissions, quotas, and local configuration apply. Enable plotting only if the separately configured image provider is available. Store any API credentials locally in the ignored `.env` file.
+
+### Running the same manuscript workflow across providers
+
+Select a single model with `--model`. It controls the outline, literature synthesis and discovery, full draft, peer reviews, revisions, and formatting review. All three use the same review policy, including three reviews per ensemble and the same early stopping rule. For example, run the following command with each model in a fresh output directory:
+
+```bash
+model=codex/gpt-6-astra   # or claude/sonnet or gemini-3.8-flash
+python paper_writing_cli.py --model "$model" \
+  --raw_materials_dir ./materials --latex_template_dir templates/iclr2025 \
+  --research_cutoff 2026-11 --use_plotting false --output_dir "./drafts/${model//\//_}"
+```
+
+Use the same input directory, language guidelines, template, cutoff and supplied figures for each run. For a fixed bibliography, put `screened_literature.json` beside the idea file in the raw materials directory. It contains an array of records with `key`, `title`, `authors` (list), `venue`, `year` and `summary`. A screened pool replaces live search for every model. Each model still writes the literature synthesis and receives the same references when drafting and revising. With live search, web results can differ by provider.
+
+The same flag accepts `openai/<API model>`, `anthropic/<API model>`, or `agy/<installed model>`. For deliberate mixed-model runs use the per-role flags on their own. The writer supplies the default reviewer and plot-code model. With figure generation enabled, diagram rendering uses the separately configured Gemini image model.
+
+For the local Streamlit demo, set `PAPER_ORCHESTRA_MODELS=codex/gpt-6-astra,claude/sonnet,gemini-3.8-flash` before launch to enable those accounts in the model menu.

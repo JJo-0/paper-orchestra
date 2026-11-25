@@ -41,6 +41,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from methods.paper_writer import write_single_paper
 from utils.pdf_utils import pdf_to_grid_images
+from utils.provider_text import DEFAULT_MODEL
 
 st.set_page_config(
     page_title="Paper Orchestra - AI Paper Writer",
@@ -142,7 +143,8 @@ def render_sidebar():
         except Exception as exception_object:
             st.sidebar.error(f"Error loading example: {exception_object}")
 
-    models = ["gemini-3.1-pro-preview", "gemini-3-flash-preview"]
+    configured_models = os.getenv("PAPER_ORCHESTRA_MODELS", DEFAULT_MODEL).split(",")
+    models = [name.strip() for name in configured_models if name.strip()] or [DEFAULT_MODEL]
     selected_model = st.sidebar.selectbox(
         "Select Model", models, disabled=st.session_state.locked
     )
@@ -156,7 +158,7 @@ def render_sidebar():
     enable_plotting = st.sidebar.selectbox(
         "Enable Figure Generation",
         plotting_options,
-        index=0,
+        index=1,
         disabled=st.session_state.locked,
     )
 
@@ -345,9 +347,7 @@ def handle_live_execution(
                 run_directory,
                 "--latex_template_dir",
                 os.path.join(base_directory, "templates", selected_template),
-                "--writer_model_name",
-                selected_model,
-                "--reflection_model_name",
+                "--model",
                 selected_model,
                 "--idea_filename",
                 "idea_sparse.md",
@@ -359,8 +359,6 @@ def handle_live_execution(
                     [
                         "--use_plotting",
                         "True",
-                        "--plotting_model_name",
-                        selected_model,
                         "--image_model_name",
                         "gemini-3-pro-image-preview",
                     ]

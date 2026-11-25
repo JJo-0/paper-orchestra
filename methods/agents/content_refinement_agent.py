@@ -84,29 +84,26 @@ class ContentRefinementAgent:
     def _get_peer_review(self, pdf_path: str, iteration_label: str) -> dict:
         """Helper to call the external reviewer."""
         print(f" >> [AgentReview] Generating feedback for {iteration_label} paper...")
-        try:
-            paper_text = load_paper(pdf_path=pdf_path)
+        paper_text = load_paper(pdf_path=pdf_path)
 
-            review = perform_review_agentreview(
-                text=paper_text,
-                model_name=self.model_name,
-            )
+        review = perform_review_agentreview(
+            text=paper_text,
+            model_name=self.model_name,
+        )
 
-            score = review.get("Overall", 0)
-            print(f" >> [Reviewer] Score for {iteration_label}: {score}/10")
+        score = float(review["Overall"])
+        if not 1 <= score <= 10:
+            raise ValueError(f"Peer review returned invalid Overall score: {score}")
+        print(f" >> [Reviewer] Score for {iteration_label}: {score}/10")
 
-            version_name = "v0" if iteration_label == "initial" else iteration_label
-            review_path = os.path.join(
-                self.work_dir, "peer_reviews", f"review_{version_name}.json"
-            )
-            with open(review_path, "w", encoding="utf-8") as f:
-                json.dump(review, f, indent=4)
+        version_name = "v0" if iteration_label == "initial" else iteration_label
+        review_path = os.path.join(
+            self.work_dir, "peer_reviews", f"review_{version_name}.json"
+        )
+        with open(review_path, "w", encoding="utf-8") as f:
+            json.dump(review, f, indent=4)
 
-            return review, float(score)
-        except Exception as e:
-            print(f" >> [Reviewer] Error generating review: {e}")
-            traceback.print_exc()
-            return {"Error": str(e), "Overall": 0}, 0.0
+        return review, score
 
     def _get_formatting_review(self, pdf_path: str, iteration_label: str) -> dict:
         """Helper to call VLM for formatting feedback."""
